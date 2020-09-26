@@ -19,8 +19,8 @@ class GetSpotSerializer(serializers.Serializer):
     longitude = serializers.FloatField(allow_null=False, max_value= 180, min_value= -180)
     distance = serializers.IntegerField(allow_null=False)
 
-class ParkingSpotReserveGet(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=200)
+class ParkingSpotReserveGet(serializers.Serializer):
+    transactionName = serializers.CharField(max_length=200)
     amount = serializers.DecimalField(max_digits=14, decimal_places=4)
     productIdentity = serializers.CharField(max_length=500)
     productName = serializers.CharField(max_length=500)
@@ -28,7 +28,8 @@ class ParkingSpotReserveGet(serializers.ModelSerializer):
     eventHandler = serializers.CharField(max_length=500)
     mobile = serializers.IntegerField()
     parkingSpot = serializers.IntegerField()
+    parkingTime = serializers.IntegerField()
 
-class ReserveForTransaction(serializers.ModelSerializer):
+class ReserveForTransaction(serializers.Serializer):
     spotId = serializers.IntegerField(allow_null=False)
     

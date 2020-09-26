@@ -1,8 +1,7 @@
-import math
 import datetime
+import logging
 
 from django.contrib.auth.models import User
-from django.utils import timezone
 
 from spsmain.helper import ParkingStationHelperClass
 
@@ -11,12 +10,11 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 
 from .models import Transaction, ParkingSpot
 from .serializers import (
-    GetSpotSerializer, ParkingSpotReserveGet, ReserveForTransaction,TransactionAddSerializer, UserAddSerializers)
-from .userValidator import Validate
+    GetSpotSerializer, ParkingSpotReserveGet, UserAddSerializers)
+from .userValidator import GetUserInfo
 
 
 @permission_classes((AllowAny,))
@@ -41,10 +39,10 @@ class GetVacantSpot(APIView):
         serializer = GetSpotSerializer(data=request.data)
         if serializer.is_valid():
             # find parking station
-            station =  ParkingStationHelperClass.getAllNearestParkingStations(serializer)
+            station = ParkingStationHelperClass.getAllNearestParkingStations(serializer)
 
-            # get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
-            stationResponse={'parkStaionId':4, 'stations':{1:1, 7:0, 8:1, 10:1, 11:0}}
+            # todo get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
+            stationResponse = {'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}}
             spotDetail = ParkingStationHelperClass.findParkingSpotStatus(stationResponse)
 
             return Response(spotDetail, status=status.HTTP_201_CREATED)
@@ -60,21 +58,42 @@ class ReserveForSomeTime(APIView):
         pass
 
 
-# class ReserveSpot(APIView):
-#     def post(self, request):
-#         serializer = ParkingSpotReserveGet(data=request.data)
-#         if (serializer.is_valid()):
-#             data = serializer.data
-#
-#             stationResponse = {'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}}
-#             try:
-#                 parkingSpot = ParkingSpot.objects.get(pk=data.get('parkingSpot'))
-#             except:
-#                 return Response({"message":"not a valid parking spot"}, status=status.HTTP_400_BAD_REQUEST)
-#             # save transaction and reserve the spot
-#
-#
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class ReserveSpot(APIView):
+    def post(self, request):
+        print('reserve parking spot !!')
+        serializer = ParkingSpotReserveGet(data=request.data)
+        if (serializer.is_valid()):
+            data = serializer.data
+            logging.info('input data validated for reserve parking spot ', data['transactionName'])
+            # getting user information
+            user = GetUserInfo.getUserInformation(request.headers.get('Authorization').split()[1])
 
+            # validating parking spot
+            try:
+                parkingSpot = ParkingSpot.objects.get(pk=data.get('parkingSpot'))
+            except:
+                return Response({"message": "not a valid parking spot"}, status=status.HTTP_400_BAD_REQUEST)
 
+            logging.info('parking spot validated for reserve parking spot')
+            # save transaction and reserve the spot
+            transaction = Transaction(name=data['transactionName'], amount=data['amount'],
+                                      productIdentity=data['productIdentity'],productName=data['productName'],
+                                      productList=data['productList'], eventHandler=data['eventHandler'],
+                                      isCreditedToUser=False, mobile=data['mobile'], user=user)
+            transaction.save()
 
+            logging.info("transaction saved for reserve parking spot")
+
+            # parking spot reserve for user
+            time = parkingSpot.reservationEndTime + datetime.timedelta(minutes=data['parkingTime'])
+            parkingSpot.reservationEndTime = time
+            parkingSpot.save()
+
+            # todo response to parking station
+
+            return Response({"Message": "Added successfully", "Reservation end time": parkingSpot.reservationEndTime,
+                             "Latitude": parkingSpot.parkingStation.longitude,
+                             "Longitude": parkingSpot.parkingStation.longitude,
+                             "Parking station name": parkingSpot.parkingStation.name}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
