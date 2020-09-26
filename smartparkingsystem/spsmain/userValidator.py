@@ -1,6 +1,7 @@
 from jsonschema import ValidationError
 
 from rest_framework import status
+# from rest_framework.authentication import SessionAuthentication
 from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 from rest_framework.response import Response
 
@@ -16,3 +17,9 @@ class Validate():
                 return user
             except ValidationError :
                 return Response({"Message":"Invalid JWT"}, status=status.HTTP_400_BAD_REQUEST)
+
+# class GetUserInfo():
+#
+#     @staticmethod
+#     def getUserInformation():
+#         return SessionAuthentication.authenticate()

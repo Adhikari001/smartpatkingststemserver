@@ -28,4 +28,7 @@ class ParkingSpotReserveGet(serializers.ModelSerializer):
     eventHandler = serializers.CharField(max_length=500)
     mobile = serializers.IntegerField()
     parkingSpot = serializers.IntegerField()
+
+class ReserveForTransaction(serializers.ModelSerializer):
+    spotId = serializers.IntegerField(allow_null=False)
     

@@ -14,7 +14,7 @@ class ParkingStationHelperClass:
         return e['distance']
 
     @staticmethod
-    def findEmptySpot(stationResponse):
+    def findParkingSpotStatus(stationResponse):
         try:
             parkingStation = ParkingStation.objects.get(pk=stationResponse.get('parkStaionId'))
         except:
@@ -22,7 +22,7 @@ class ParkingStationHelperClass:
             return Response({"error!!": "parking station does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
         stations = stationResponse.get('stations')
-        vaccantStations = []
+        parkingStatu = []
         # for station in stations:
         #     if stations[station] == 1:
         #         try:
@@ -35,7 +35,7 @@ class ParkingStationHelperClass:
         #         if time < timezone.now() :
         #             spotDetail = {"parkingStation":self.prepareParkingStation(parkingStation), "parkingSpot":self.prepareParkingSpot(parkingSpot)}
         #             vaccantStations.append(spotDetail)
-
+        spot = []
         for station in stations:
             try:
                 parkingSpot = ParkingSpot.objects.get(pk=station)
@@ -45,13 +45,12 @@ class ParkingStationHelperClass:
                                 status=status.HTTP_400_BAD_REQUEST)
             time = parkingSpot.reservationEndTime
             occupiedByVehicle = bool(stations[station])
-            occupiedByTime = time < timezone.now()
+            occupiedByTime = time > timezone.now()
 
-            spotDetail = {"parkingStation": ParkingStationHelperClass.prepareParkingStation(parkingStation),
-                          "parkingSpot": ParkingStationHelperClass.prepareParkingSpot(parkingSpot, occupiedByTime, occupiedByVehicle)}
-            vaccantStations.append(spotDetail)
+            spotDetail = ParkingStationHelperClass.prepareParkingSpot(parkingSpot, occupiedByTime, occupiedByVehicle)
+            spot.append(spotDetail)
 
-        return vaccantStations
+        return ParkingStationHelperClass.prepareParkingStation(parkingStation, spot)
 
     @staticmethod
     def prepareParkingSpot(parkingSpot, occupiedByTime, occupiedByVehicle):
@@ -59,9 +58,10 @@ class ParkingStationHelperClass:
                 "occupiedByVehicle": occupiedByVehicle, "occupiedByTime": occupiedByTime}
 
     @staticmethod
-    def prepareParkingStation(parkingStation):
+    def prepareParkingStation(parkingStation, spot):
         return {"id": parkingStation.id, "name": parkingStation.name, "latitude": parkingStation.latitude,
-                "longitude": parkingStation.longitude, "location": parkingStation.location, "distance": 1000}
+                "longitude": parkingStation.longitude, "location": parkingStation.location, "distance": 1000,
+                "parkingSpot":spot}
 
     @staticmethod
     def getAllNearestParkingStations(serializer):
@@ -89,8 +89,7 @@ class ParkingStationHelperClass:
                 counter += 1
         if(len(validStation)==0):
 
-            print("inside if 12345")
-            return Response({"error!!": "parking station not found within the given diatance"},
+            return Response({"error!!": "parking station not found within the given distance"},
                             status=status.HTTP_400_BAD_REQUEST)
         # validStation.sort(key=self.sortFunction)
         print(validStation)

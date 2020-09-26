@@ -13,8 +13,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 
-from .models import ParkingStation, ParkingSpot
-from .serializers import GetSpotSerializer, TransactionAddSerializer, UserAddSerializers, ParkingSpotReserveGet
+from .models import Transaction, ParkingSpot
+from .serializers import (
+    GetSpotSerializer, ParkingSpotReserveGet, ReserveForTransaction,TransactionAddSerializer, UserAddSerializers)
 from .userValidator import Validate
 
 
@@ -44,7 +45,7 @@ class GetVacantSpot(APIView):
 
             # get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
             stationResponse={'parkStaionId':4, 'stations':{1:1, 7:0, 8:1, 10:1, 11:0}}
-            spotDetail = ParkingStationHelperClass.findEmptySpot(stationResponse)
+            spotDetail = ParkingStationHelperClass.findParkingSpotStatus(stationResponse)
 
             return Response(spotDetail, status=status.HTTP_201_CREATED)
 
@@ -53,15 +54,27 @@ class GetVacantSpot(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ReserveSpot(APIView):
+class ReserveForSomeTime(APIView):
     def post(self, request):
-        user = Validate.getValidate(request)
-        serializer = ParkingSpotReserveGet(data=request.data)
-        if (serializer.is_valid()):
-            data = serializer.data
-            # save transaction and reserve the spot
+        # serializer = Rese
+        pass
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class ReserveSpot(APIView):
+#     def post(self, request):
+#         serializer = ParkingSpotReserveGet(data=request.data)
+#         if (serializer.is_valid()):
+#             data = serializer.data
+#
+#             stationResponse = {'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}}
+#             try:
+#                 parkingSpot = ParkingSpot.objects.get(pk=data.get('parkingSpot'))
+#             except:
+#                 return Response({"message":"not a valid parking spot"}, status=status.HTTP_400_BAD_REQUEST)
+#             # save transaction and reserve the spot
+#
+#
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
