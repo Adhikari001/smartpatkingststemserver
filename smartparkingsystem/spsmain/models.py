@@ -61,4 +61,4 @@ class Transaction(models.Model):
     productName = models.CharField(max_length=500)
     productList = models.CharField(max_length=500)
     eventHandler = models.CharField(max_length=500)
-    mobile = models.IntegerField()
+    mobile = models.CharField(max_length=20)

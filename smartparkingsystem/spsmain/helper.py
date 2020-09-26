@@ -18,7 +18,6 @@ class ParkingStationHelperClass:
         try:
             parkingStation = ParkingStation.objects.get(pk=stationResponse.get('parkStaionId'))
         except:
-            print("parking station does not exist")
             return Response({"error!!": "parking station does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
         stations = stationResponse.get('stations')
@@ -28,7 +27,6 @@ class ParkingStationHelperClass:
         #         try:
         #             parkingSpot = ParkingSpot.objects.get(pk=station)
         #         except:
-        #             print('Parking spot does not exist')
         #             return Response({"error!!": "parking spot does not exist"},
         #                             status=status.HTTP_400_BAD_REQUEST)
         #         time = parkingSpot.reservationEndTime
@@ -40,7 +38,6 @@ class ParkingStationHelperClass:
             try:
                 parkingSpot = ParkingSpot.objects.get(pk=station)
             except:
-                print('Parking spot does not exist')
                 return Response({"error!!": "parking spot does not exist"},
                                 status=status.HTTP_400_BAD_REQUEST)
             time = parkingSpot.reservationEndTime
@@ -81,9 +78,7 @@ class ParkingStationHelperClass:
             alph = (math.sin(lat) * math.sin(reqLat)) + (2 * math.cos(lat) * math.cos(reqLat) * math.cos(lon - reqLon))
             d = 6371000 * alph
 
-            print("Distance is:",d)
             if d <= distance:
-                print("inside the required distance")
                 station = {'station': parkingStation, 'distance': alph}
                 validStation.append(station)
                 counter += 1
@@ -92,5 +87,4 @@ class ParkingStationHelperClass:
             return Response({"error!!": "parking station not found within the given distance"},
                             status=status.HTTP_400_BAD_REQUEST)
         # validStation.sort(key=self.sortFunction)
-        print(validStation)
         return validStation
