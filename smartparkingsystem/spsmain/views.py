@@ -39,13 +39,16 @@ class GetVacantSpot(APIView):
         serializer = GetSpotSerializer(data=request.data)
         if serializer.is_valid():
             # find parking station
-            station = ParkingStationHelperClass.getAllNearestParkingStations(serializer)
+            flag, station = ParkingStationHelperClass.getAllNearestParkingStations(serializer)
+            if flag:
+                return station
 
             # todo get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
-            stationResponse = {'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}}
-            spotDetail = ParkingStationHelperClass.findParkingSpotStatus(stationResponse)
 
-            return Response(spotDetail, status=status.HTTP_201_CREATED)
+            station_response = {'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}}
+            spot_detail = ParkingStationHelperClass.findParkingSpotStatus(station_response)
+
+            return Response(spot_detail, status=status.HTTP_201_CREATED)
 
             # return parking station with free space
 
