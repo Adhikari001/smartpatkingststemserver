@@ -16,38 +16,39 @@ class ParkingStationHelperClass:
     @staticmethod
     def findParkingSpotStatus(stationResponse):
         try:
-            parkingStation = ParkingStation.objects.get(pk=stationResponse.get('parkStaionId'))
+            parking_station = ParkingStation.objects.get(pk=stationResponse.get('parkStaionId'))
         except:
             return Response({"error!!": "parking station does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
         stations = stationResponse.get('stations')
-        parkingStatu = []
+        # parking_status = []
         # for station in stations:
         #     if stations[station] == 1:
         #         try:
-        #             parkingSpot = ParkingSpot.objects.get(pk=station)
+        #             parking_spot = ParkingSpot.objects.get(pk=station)
         #         except:
         #             return Response({"error!!": "parking spot does not exist"},
         #                             status=status.HTTP_400_BAD_REQUEST)
-        #         time = parkingSpot.reservationEndTime
+        #         time = parking_spot.reservationEndTime
         #         if time < timezone.now() :
-        #             spotDetail = {"parkingStation":self.prepareParkingStation(parkingStation), "parkingSpot":self.prepareParkingSpot(parkingSpot)}
-        #             vaccantStations.append(spotDetail)
+        #             spot_detail = {"parking_station":self.prepareParkingStation(parking_station), "parking_spot":self.prepareParkingSpot(parking_spot)}
+        #             vaccantStations.append(spot_detail)
         spot = []
         for station in stations:
             try:
-                parkingSpot = ParkingSpot.objects.get(pk=station)
+                parking_spot = ParkingSpot.objects.get(pk=station)
             except:
                 return Response({"error!!": "parking spot does not exist"},
                                 status=status.HTTP_400_BAD_REQUEST)
-            time = parkingSpot.reservationEndTime
-            occupiedByVehicle = bool(stations[station])
-            occupiedByTime = time > timezone.now()
+            time = parking_spot.reservationEndTime
+            occupied_by_vehicle = bool(stations[station])
+            occupied_by_time = time > timezone.now()
 
-            spotDetail = ParkingStationHelperClass.prepareParkingSpot(parkingSpot, occupiedByTime, occupiedByVehicle)
-            spot.append(spotDetail)
+            spot_detail = ParkingStationHelperClass.prepareParkingSpot(parking_spot, occupied_by_time,
+                                                                       occupied_by_vehicle)
+            spot.append(spot_detail)
 
-        return ParkingStationHelperClass.prepareParkingStation(parkingStation, spot)
+        return ParkingStationHelperClass.prepareParkingStation(parking_station, spot)
 
     @staticmethod
     def prepareParkingSpot(parkingSpot, occupiedByTime, occupiedByVehicle):
@@ -58,33 +59,47 @@ class ParkingStationHelperClass:
     def prepareParkingStation(parkingStation, spot):
         return {"id": parkingStation.id, "name": parkingStation.name, "latitude": parkingStation.latitude,
                 "longitude": parkingStation.longitude, "location": parkingStation.location, "distance": 1000,
-                "parkingSpot":spot}
+                "parkingSpot": spot}
 
     @staticmethod
     def getAllNearestParkingStations(serializer):
 
-        userRequest = serializer.data
-        reqLat = math.radians(userRequest.get('latitude'))
-        reqLon = math.radians(userRequest.get('longitude'))
-        distance = userRequest.get('distance')
+        user_request = serializer.data
+        req_lat = math.radians(user_request.get('latitude'))
+        req_lon = math.radians(user_request.get('longitude'))
+        distance = user_request.get('distance')
         # get all parking station from db
-        parkingStations = ParkingStation.objects.all()
-        validStation = []
+        parking_stations = ParkingStation.objects.all()
+        valid_station = []
         counter = 0
-        for parkingStation in parkingStations:
+        for parkingStation in parking_stations:
             lat = math.radians(parkingStation.latitude)
             lon = math.radians(parkingStation.longitude)
-            # haversine formula
-            alph = (math.sin(lat) * math.sin(reqLat)) + (2 * math.cos(lat) * math.cos(reqLat) * math.cos(lon - reqLon))
-            d = 6371000 * alph
+            d = ParkingStationHelperClass.haversine(lat, lon, req_lat, req_lon)
 
             if d <= distance:
-                station = {'station': parkingStation, 'distance': alph}
-                validStation.append(station)
+                station = {'station': parkingStation, 'distance': d}
+                valid_station.append(station)
                 counter += 1
-        if(len(validStation)==0):
+                print("found station", parkingStation.name)
 
-            return Response({"error!!": "parking station not found within the given distance"},
+        if counter == 0:
+            return True, Response({"error!!": "parking station not found within the given distance"},
                             status=status.HTTP_400_BAD_REQUEST)
+
         # validStation.sort(key=self.sortFunction)
-        return validStation
+        return False, valid_station
+
+    @staticmethod
+    def haversine(lat1, lon1, lat2, lon2):
+
+        # distance between latitudes
+        # and longitudes
+        dLat = (lat2 - lat1)
+        dLon = (lon2 - lon1)
+
+        # apply formulae
+        a = (pow(math.sin(dLat / 2), 2) + pow(math.sin(dLon / 2), 2) * math.cos(lat1) * math.cos(lat2));
+        rad = 6371000
+        c = 2 * math.asin(math.sqrt(a))
+        return rad * c

@@ -29,7 +29,7 @@ class ParkingStation(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     location = models.CharField(max_length=100, null=True)
-
+    ip = models.CharField(max_length=45, null=True)
 
 class ParkingSpot(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -43,7 +43,7 @@ class ParkingSpot(models.Model):
 
 class ParkingCost(models.Model):
     name = models.CharField(max_length=100)
-    parkingSpot = models.OneToOneField(ParkingSpot, on_delete=models.CASCADE, null=True)
+    parkingStation = models.OneToOneField(ParkingStation, on_delete=models.CASCADE, null=True)
     cost = models.BigIntegerField()
     minutes = models.BigIntegerField()
     minimumCost = models.BigIntegerField()
