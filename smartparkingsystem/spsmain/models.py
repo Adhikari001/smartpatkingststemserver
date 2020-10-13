@@ -31,10 +31,14 @@ class ParkingStation(models.Model):
     location = models.CharField(max_length=100, null=True)
     ip = models.CharField(max_length=45, null=True)
 
+
+    def __str__(self):
+        return self.name
+
 class ParkingSpot(models.Model):
     name = models.CharField(max_length=100, unique=True)
     parkingStation = models.ForeignKey(ParkingStation, on_delete=models.CASCADE)
-    occupiedBy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    occupiedBy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, unique=False)
     reservationEndTime = models.DateTimeField(null=True)
 
     def __str__(self):

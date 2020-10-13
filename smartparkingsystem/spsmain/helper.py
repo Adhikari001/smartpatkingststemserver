@@ -14,41 +14,44 @@ class ParkingStationHelperClass:
         return e['distance']
 
     @staticmethod
-    def findParkingSpotStatus(stationResponse):
-        try:
-            parking_station = ParkingStation.objects.get(pk=stationResponse.get('parkStaionId'))
-        except:
-            return Response({"error!!": "parking station does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-        stations = stationResponse.get('stations')
-        # parking_status = []
-        # for station in stations:
-        #     if stations[station] == 1:
-        #         try:
-        #             parking_spot = ParkingSpot.objects.get(pk=station)
-        #         except:
-        #             return Response({"error!!": "parking spot does not exist"},
-        #                             status=status.HTTP_400_BAD_REQUEST)
-        #         time = parking_spot.reservationEndTime
-        #         if time < timezone.now() :
-        #             spot_detail = {"parking_station":self.prepareParkingStation(parking_station), "parking_spot":self.prepareParkingSpot(parking_spot)}
-        #             vaccantStations.append(spot_detail)
-        spot = []
-        for station in stations:
+    def findParkingSpotStatus(stationResponses):
+        response = []
+        for stationResponse in stationResponses:
             try:
-                parking_spot = ParkingSpot.objects.get(pk=station)
+                parking_station = ParkingStation.objects.get(pk=stationResponse.get('parkStaionId'))
             except:
-                return Response({"error!!": "parking spot does not exist"},
+                return Response({"error!!": "parking station does not exist"},
                                 status=status.HTTP_400_BAD_REQUEST)
-            time = parking_spot.reservationEndTime
-            occupied_by_vehicle = bool(stations[station])
-            occupied_by_time = time > timezone.now()
+            stations = stationResponse.get('stations')
+            # parking_status = []
+            # for station in stations:
+            #     if stations[station] == 1:
+            #         try:
+            #             parking_spot = ParkingSpot.objects.get(pk=station)
+            #         except:
+            #             return Response({"error!!": "parking spot does not exist"},
+            #                             status=status.HTTP_400_BAD_REQUEST)
+            #         time = parking_spot.reservationEndTime
+            #         if time < timezone.now() :
+            #             spot_detail = {"parking_station":self.prepareParkingStation(parking_station), "parking_spot":self.prepareParkingSpot(parking_spot)}
+            #             vaccantStations.append(spot_detail)
+            spot = []
+            for station in stations:
+                try:
+                    parking_spot = ParkingSpot.objects.get(pk=station)
+                except:
+                    return Response({"error!!": "parking spot does not exist"},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                time = parking_spot.reservationEndTime
+                occupied_by_vehicle = bool(stations[station])
+                occupied_by_time = time > timezone.now()
 
-            spot_detail = ParkingStationHelperClass.prepareParkingSpot(parking_spot, occupied_by_time,
-                                                                       occupied_by_vehicle)
-            spot.append(spot_detail)
+                spot_detail = ParkingStationHelperClass.prepareParkingSpot(parking_spot, occupied_by_time,
+                                                                           occupied_by_vehicle)
+                spot.append(spot_detail)
 
-        return ParkingStationHelperClass.prepareParkingStation(parking_station, spot)
+            response.append(ParkingStationHelperClass.prepareParkingStation(parking_station, spot))
+        return response
 
     @staticmethod
     def prepareParkingSpot(parkingSpot, occupiedByTime, occupiedByVehicle):
@@ -58,7 +61,8 @@ class ParkingStationHelperClass:
     @staticmethod
     def prepareParkingStation(parkingStation, spot):
         return {"id": parkingStation.id, "name": parkingStation.name, "latitude": parkingStation.latitude,
-                "longitude": parkingStation.longitude, "location": parkingStation.location, "distance": 1000,
+                "longitude": parkingStation.longitude, "location": parkingStation.location,"cost": parkingStation.parkingcost.cost,
+                "minutes":parkingStation.parkingcost.minutes, "minimum cost": parkingStation.parkingcost.minimumCost, "distance": 1000,
                 "parkingSpot": spot}
 
     @staticmethod

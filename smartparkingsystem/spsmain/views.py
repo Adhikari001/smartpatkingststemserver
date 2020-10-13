@@ -45,7 +45,8 @@ class GetVacantSpot(APIView):
 
             # todo get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
 
-            station_response = {'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}}
+            station_response = [{'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}},
+                                {'parkStaionId': 5, 'stations': {12: 1, 13: 0, 14: 1, 15: 1, 16: 0}}]
             spot_detail = ParkingStationHelperClass.findParkingSpotStatus(station_response)
 
             return Response(spot_detail, status=status.HTTP_201_CREATED)
