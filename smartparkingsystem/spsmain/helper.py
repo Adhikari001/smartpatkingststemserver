@@ -1,11 +1,15 @@
+import pickle
 import math
+import socket
 
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
+from threading import Thread
 
 from spsmain.models import ParkingSpot, ParkingStation
 
+status = []
 
 class ParkingStationHelperClass:
 
@@ -107,3 +111,51 @@ class ParkingStationHelperClass:
         rad = 6371000
         c = 2 * math.asin(math.sqrt(a))
         return rad * c
+
+
+global status
+
+def findStationStatus(IP, PORT):
+    user_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    user_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    user_socket.connect((IP, PORT))
+
+    d = {"findparkingSpot": 1}
+    user_socket.send(pickle.dumps(d))
+
+    response = user_socket.recv(112)
+    status.append(pickle.loads(response))
+    #user_socket.close()
+
+def findStationsStatus(stations):
+    status = []
+    threads = []
+    for station in stations:
+        t = Thread(target=findStationStatus, args= (station.ip, station.port))
+        t.start()
+        threads.append(t)
+        pass
+
+    for thread in threads:
+        thread.join()
+    return status
+
+
+def reserveSpot(IP, PORT, spot, time, vehicleNo):
+    user_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    user_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    user_socket.connect((IP, PORT))
+
+    spot_req = { "spot": spot, "time": time, "vehicleNo": vehicleNo}
+    msg = pickle.dumps(spot_req)
+    user_socket.send(msg)
+
+    response = user_socket.recv(112)
+    #user_socket.close()
+
+    #confirmation = {"parkingstation_id":0,"spot":r_spot,"reserve":1,"time":r_time}
+    return pickle.loads(response)
+
+

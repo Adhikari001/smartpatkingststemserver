@@ -3,7 +3,7 @@ import logging
 
 from django.contrib.auth.models import User
 
-from spsmain.helper import ParkingStationHelperClass
+from spsmain.helper import HandelReserve, ParkingStationHelperClass
 
 from rest_framework import status
 from rest_framework.decorators import permission_classes
@@ -44,6 +44,7 @@ class GetVacantSpot(APIView):
                 return station
 
             # todo get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
+            station_response = HandelReserve.findStationsStatus(station)
 
             station_response = [{'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}},
                                 {'parkStaionId': 5, 'stations': {12: 1, 13: 0, 14: 1, 15: 1, 16: 0}}]

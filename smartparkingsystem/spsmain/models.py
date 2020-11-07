@@ -30,6 +30,7 @@ class ParkingStation(models.Model):
     longitude = models.FloatField()
     location = models.CharField(max_length=100, null=True)
     ip = models.CharField(max_length=45, null=True)
+    port = models.IntegerField(null=True)
 
 
     def __str__(self):
