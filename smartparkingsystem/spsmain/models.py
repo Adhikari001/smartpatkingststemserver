@@ -59,7 +59,7 @@ class ParkingCost(models.Model):
 
 class Transaction(models.Model):
     name = models.CharField(max_length=200)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, unique=False)
     isCreditedToUser = models.BooleanField()
     amount = models.DecimalField(max_digits=14, decimal_places=4)
     productIdentity = models.CharField(max_length=500)

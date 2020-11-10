@@ -3,7 +3,7 @@ import logging
 
 from django.contrib.auth.models import User
 
-from spsmain.helper import HandelReserve, ParkingStationHelperClass
+from spsmain.helper import findStationsStatus, ParkingStationHelperClass, findStationsStatus, reserveSpot
 
 from rest_framework import status
 from rest_framework.decorators import permission_classes
@@ -44,7 +44,29 @@ class GetVacantSpot(APIView):
                 return station
 
             # todo get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
-            station_response = HandelReserve.findStationsStatus(station)
+            # station_response = findStationsStatus(station)
+
+            station_response = [{'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}},
+                                {'parkStaionId': 5, 'stations': {12: 1, 13: 0, 14: 1, 15: 1, 16: 0}}]
+            spot_detail = ParkingStationHelperClass.findParkingSpotStatus(station_response)
+
+            return Response(spot_detail, status=status.HTTP_201_CREATED)
+
+            # return parking station with free space
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        # request vacant spot
+        serializer = GetSpotSerializer(data=request.data)
+        if serializer.is_valid():
+            # find parking station
+            flag, station = ParkingStationHelperClass.getAllNearestParkingStations(serializer)
+            if flag:
+                return station
+
+            # todo get empty parking spaces from parking station using socket and validate those spot is vaccant from  db
+            # station_response = findStationsStatus(station)
 
             station_response = [{'parkStaionId': 4, 'stations': {1: 1, 7: 0, 8: 1, 10: 1, 11: 0}},
                                 {'parkStaionId': 5, 'stations': {12: 1, 13: 0, 14: 1, 15: 1, 16: 0}}]
@@ -82,7 +104,7 @@ class ReserveSpot(APIView):
             logging.info('parking spot validated for reserve parking spot')
             # save transaction and reserve the spot
             transaction = Transaction(name=data['transactionName'], amount=data['amount'],
-                                      productIdentity=data['productIdentity'],productName=data['productName'],
+                                      productIdentity=data['productIdentity'], productName=data['productName'],
                                       productList=data['productList'], eventHandler=data['eventHandler'],
                                       isCreditedToUser=False, mobile=data['mobile'], user=user)
             transaction.save()
