@@ -9,7 +9,7 @@ from threading import Thread
 
 from spsmain.models import ParkingSpot, ParkingStation
 
-stat = []
+status = []
 
 class ParkingStationHelperClass:
 
@@ -113,6 +113,7 @@ class ParkingStationHelperClass:
         return rad * c
 
 
+global status
 
 def findStationStatus(IP, PORT):
     user_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -124,11 +125,11 @@ def findStationStatus(IP, PORT):
     user_socket.send(pickle.dumps(d))
 
     response = user_socket.recv(112)
-    stat.append(pickle.loads(response))
+    status.append(pickle.loads(response))
     #user_socket.close()
 
 def findStationsStatus(stations):
-    stat = []
+    status = []
     threads = []
     for station in stations:
         t = Thread(target=findStationStatus, args= (station.ip, station.port))
@@ -138,7 +139,7 @@ def findStationsStatus(stations):
 
     for thread in threads:
         thread.join()
-    return stat
+    return status
 
 
 def reserveSpot(IP, PORT, spot, time, vehicleNo):

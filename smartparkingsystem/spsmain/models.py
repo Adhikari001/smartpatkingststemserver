@@ -30,6 +30,7 @@ class ParkingStation(models.Model):
     longitude = models.FloatField()
     location = models.CharField(max_length=100, null=True)
     ip = models.CharField(max_length=45, null=True)
+    port = models.IntegerField(null=True)
 
 
     def __str__(self):
@@ -58,7 +59,7 @@ class ParkingCost(models.Model):
 
 class Transaction(models.Model):
     name = models.CharField(max_length=200)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, unique=False)
     isCreditedToUser = models.BooleanField()
     amount = models.DecimalField(max_digits=14, decimal_places=4)
     productIdentity = models.CharField(max_length=500)
